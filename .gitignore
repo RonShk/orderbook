@@ -1,0 +1,20 @@
+# build output
+build/
+cmake-build-*/
+
+# IDE files
+.idea/
+.vscode/
+*.iml
+
+# generated order files (large)
+data/
+src/orders.txt
+orders*.txt
+
+# compiled binaries
+src/main
+*.o
+
+# macOS
+.DS_Store
