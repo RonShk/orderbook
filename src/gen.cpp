@@ -1,21 +1,12 @@
 #include <fstream>
 #include <random>
-#include "../include/order.hpp"
+#include "order.hpp"
+#include "order_io.hpp"
 
-
-static std::ostream& operator<<(std::ostream& os, Side side)
-{
-    // write obj to stream
-    switch (side) {
-        case Side::Buy: return os << "Buy";
-        case Side::Sell: return os << "Sell";
-    }
-    return os << "Unknown";
-}
 
 int main() {
-    std::ofstream file("orders_10k.txt");
-    constexpr int orderNum = 10000;
+    std::ofstream file("orders_1k.txt");
+    constexpr int orderNum = 1000;
     std::mt19937 gen(43);
     std::uniform_int_distribution<int> priceDist(9000, 11000);
     std::uniform_int_distribution<int> sideDist(0,1);

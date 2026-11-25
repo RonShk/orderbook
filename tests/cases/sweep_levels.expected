@@ -1,0 +1,11 @@
+TRADE buy=4 sell=2 price=10100 qty=5
+TRADE buy=4 sell=3 price=10200 qty=5
+TRADE buy=4 sell=5 price=10200 qty=2
+orders 5
+trades 3
+checksum 2284288412230082230
+ASKS
+  103.00  x 5
+  99.00  x 18
+--- spread ---
+BIDS

@@ -1,0 +1,7 @@
+TRADE buy=1 sell=2 price=10000 qty=10
+orders 2
+trades 1
+checksum 1000011010039030055
+ASKS
+--- spread ---
+BIDS

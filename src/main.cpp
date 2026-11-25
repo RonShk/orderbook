@@ -1,78 +1,66 @@
+#include <chrono>
 #include <iostream>
-#include "../include/order.hpp"
-#include "../include/order_book.hpp"
-#include <istream>
-#include <fstream>
+#include <string>
+#include <vector>
+#include "order.hpp"
+#include "order_book.hpp"
+#include "order_io.hpp"
+#include "report.hpp"
 
-static std::ostream& operator<<(std::ostream& os, Side sd) {
-    if (const int val = static_cast<int>(sd); val == 0) {
-        os << "Buy ";
-    } else {
-        os << "Sell";
-    }
-
-    return os;
-}
-
-static std::ostream& operator<<(std::ostream& os, const Order& ord) {
-    os << ord.side << "Price " << ord.price << " Quantity " << ord.quantity << '\n';
-
-    return os;
-}
-
-
-static  std::istream& operator>>(std::istream& is, Side& sd) {
-    std::string word;
-    is >> word; 
-
-    if (word == "Buy") {
-        sd = Side::Buy;
-    } else if (word == "Sell") {
-        sd = Side::Sell;
-    } else {
-        is.setstate(std::ios::failbit);
-    }
-
-    return is;
-}
-
-int main() {
-    OrderBook book; 
-    Order order{};
-    int price; 
-    int quantity; 
-    Side side; 
-    int id = 0;
-
-
-    std::ifstream file("orders_1m.txt");
-    if (!file.is_open()) {
-        std::cerr << "Error opening file" << std::endl;
+// usage: orderbook <orders-file> [--print-trades] [--print-book]
+// stdout: (optional trades), order count, trade count, checksum, (optional book)
+// stderr: time spent matching, so stdout stays identical between runs
+int main(int argc, char* argv[]) {
+    if (argc < 2) {
+        std::cerr << "usage: " << argv[0] << " <orders-file> [--print-trades] [--print-book]\n";
         return 1;
     }
 
-
+    bool printTrades = false;
+    bool printBook = false;
+    for (int i = 2; i < argc; i++) {
+        const std::string flag = argv[i];
+        if (flag == "--print-trades") {
+            printTrades = true;
+        } else if (flag == "--print-book") {
+            printBook = true;
+        } else {
+            std::cerr << "unknown flag: " << flag << '\n';
+            return 1;
+        }
+    }
 
     std::vector<Order> orders;
-    while (file >> side >>quantity >> price ) {
-        order.side = side;
-        order.price = price;
-        order.quantity = quantity;
-        order.id = ++id;
-        orders.push_back(order);
+    if (!read_orders(argv[1], orders)) {
+        return 1;
     }
+
+    OrderBook book;
+    RunStats stats;
+    stats.orders = orders.size();
+    std::vector<Trade> allTrades;   // only filled with --print-trades
 
     const auto start = std::chrono::steady_clock::now();
     for (const auto& ord : orders) {
-        book.add_order(ord);
+        const std::vector<Trade> trades = book.add_order(ord);
+        for (const Trade& trade : trades) {
+            record_trade(stats, trade);
+        }
+        if (printTrades) {
+            allTrades.insert(allTrades.end(), trades.begin(), trades.end());
+        }
     }
     const auto end = std::chrono::steady_clock::now();
-
     const std::chrono::duration<double> elapsed_seconds = end - start;
-    double seconds = elapsed_seconds.count();
 
-    book.print_order_book();
-    std::cout << "Took " << seconds << " seconds" << std::endl;
+    if (printTrades) {
+        print_trades(allTrades);
+    }
+    print_summary(stats);
+    if (printBook) {
+        book.print_order_book();
+    }
+    std::cerr << "seconds " << elapsed_seconds.count() << std::endl;
 
     return 0;
 }
