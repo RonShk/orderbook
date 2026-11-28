@@ -1,0 +1,12 @@
+TRADE buy=1 sell=2 price=10000 qty=10
+CANCEL id=1 NotFound
+CANCEL id=99 NotFound
+CANCEL id=3 NotFound
+orders 3
+cancels 3 canceled=0 not_found=3
+trades 1
+checksum 11307591544229590606
+ASKS
+--- spread ---
+BIDS
+  99.00  x 5

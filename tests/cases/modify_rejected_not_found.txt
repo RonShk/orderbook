@@ -1,0 +1,6 @@
+Buy 10 10000
+Modify 1 Buy 0 10000
+Modify 1 Buy 5 0
+Modify 1 Buy -3 10000
+Modify 7 Buy 5 10000
+Modify 1 Sell 5 10000

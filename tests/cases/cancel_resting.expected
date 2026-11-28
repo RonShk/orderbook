@@ -1,0 +1,9 @@
+CANCEL id=1 Canceled
+orders 2
+cancels 1 canceled=1 not_found=0
+trades 0
+checksum 1000007000012
+ASKS
+  100.00  x 10
+--- spread ---
+BIDS

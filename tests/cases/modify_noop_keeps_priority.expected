@@ -1,0 +1,10 @@
+MODIFY id=1 Modified
+TRADE buy=1 sell=3 price=10000 qty=10
+orders 3
+modifies 1 modified=1 not_found=0 rejected=0
+trades 1
+checksum 406766379635242389
+ASKS
+--- spread ---
+BIDS
+  100.00  x 10

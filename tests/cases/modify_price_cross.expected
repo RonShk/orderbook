@@ -1,0 +1,13 @@
+MODIFY id=4 Modified
+TRADE buy=4 sell=1 price=10100 qty=5
+TRADE buy=4 sell=2 price=10200 qty=5
+MODIFY id=3 Modified
+TRADE buy=4 sell=3 price=10200 qty=2
+orders 4
+modifies 2 modified=2 not_found=0 rejected=0
+trades 3
+checksum 16601219973365944817
+ASKS
+  102.00  x 2
+--- spread ---
+BIDS

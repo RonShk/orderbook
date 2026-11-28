@@ -1,0 +1,6 @@
+Sell 5 10100
+Sell 5 10200
+Sell 5 10300
+Buy 12 10000
+Modify 4 Buy 12 10200
+Modify 3 Sell 4 10200

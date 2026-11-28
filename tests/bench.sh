@@ -5,12 +5,14 @@
 # usage: tests/bench.sh [runs] [sizes...]
 #   tests/bench.sh                 # 5 runs each of 1k 10k 100k 1m 10m
 #   tests/bench.sh 7 1k 100k 1m    # 7 runs, only those sizes
-# env:   BIN=path/to/orderbook  DATA=path/to/data-dir
+#   PREFIX=mixed tests/bench.sh    # data/mixed_<size>.txt instead of data/orders_<size>.txt
+# env:   BIN=path/to/orderbook  DATA=path/to/data-dir  PREFIX=file-name-prefix (default orders)
 set -u
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 BIN="${BIN:-$ROOT/cmake-build-release/orderbook}"
 DATA="${DATA:-$ROOT/data}"
+PREFIX="${PREFIX:-orders}"
 RUNS="${1:-5}"
 shift || true
 SIZES=("$@")
@@ -26,15 +28,16 @@ grep -m1 'model name' /proc/cpuinfo 2>/dev/null | sed 's/.*: /cpu:      /'
 sysctl -n machdep.cpu.brand_string 2>/dev/null | sed 's/^/cpu:      /'
 echo "compiler: $(c++ --version | head -1)"
 echo "runs:     $RUNS per size (median reported)"
+echo "files:    $DATA/${PREFIX}_<size>.txt"
 echo
 
 printf '| %-6s | %10s | %10s | %10s | %12s | %8s | %20s |\n' \
-    size orders "median s" "min s" "orders/sec" trades checksum
+    size commands "median s" "min s" "commands/sec" trades checksum
 printf '|%s|%s|%s|%s|%s|%s|%s|\n' \
     -------- ------------ ------------ ------------ -------------- ---------- ----------------------
 
 for size in "${SIZES[@]}"; do
-    file="$DATA/orders_$size.txt"
+    file="$DATA/${PREFIX}_$size.txt"
     if [[ ! -f "$file" ]]; then
         echo "missing $file, skipping" >&2
         continue
@@ -43,7 +46,7 @@ for size in "${SIZES[@]}"; do
     times=()
     ref=""
     for ((r = 1; r <= RUNS; r++)); do
-        # stdout has orders/trades/checksum, stderr has "seconds X"
+        # stdout has the summary and checksum, stderr has "seconds X"
         out="$("$BIN" "$file" 2>"/tmp/orderbook_time_$$")" || { echo "run failed on $file" >&2; exit 1; }
         t="$(awk '/^seconds/ {print $2}' "/tmp/orderbook_time_$$")"
         times+=("$t")
@@ -56,15 +59,16 @@ for size in "${SIZES[@]}"; do
         echo "  $size run $r/$RUNS: ${t}s" >&2
     done
 
-    orders="$(awk '/^orders/ {print $2}' <<< "$ref")"
+    # every command line counts: adds, cancels and modifies
+    commands="$(awk '/^(orders|cancels|modifies) / {n += $2} END {print n}' <<< "$ref")"
     trades="$(awk '/^trades/ {print $2}' <<< "$ref")"
     checksum="$(awk '/^checksum/ {print $2}' <<< "$ref")"
     sorted="$(printf '%s\n' "${times[@]}" | sort -g)"
     median="$(awk '{a[NR]=$1} END {if (NR % 2) print a[(NR+1)/2]; else print (a[NR/2] + a[NR/2+1]) / 2}' <<< "$sorted")"
     min="$(head -1 <<< "$sorted")"
-    rate="$(awk -v n="$orders" -v t="$median" 'BEGIN {printf "%.0f", n / t}')"
+    rate="$(awk -v n="$commands" -v t="$median" 'BEGIN {printf "%.0f", n / t}')"
 
     printf '| %-6s | %10s | %10.4g | %10.4g | %12s | %8s | %20s |\n' \
-        "$size" "$orders" "$median" "$min" "$rate" "$trades" "$checksum"
+        "$size" "$commands" "$median" "$min" "$rate" "$trades" "$checksum"
 done
 rm -f "/tmp/orderbook_time_$$"
