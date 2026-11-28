@@ -106,3 +106,52 @@ void OrderBook::print_order_book() {
 }
 //the best buyer is the one with the highest price so put that at the back
 //the best seller is the one with the lowest price so put that at the back 
+
+
+ModifyResult OrderBook::modify_order(const int orderId, const int newPrice, const int newQuantity, const Side side) {
+    if (newPrice <= 0 || newQuantity <= 0) {
+        return {ModifyState::Rejected, {}};
+    }
+
+    std::vector<Order>& book = (side == Side::Buy) ? bids : asks;
+    const auto iter = std::find_if(book.begin(), book.end(), [orderId](const Order& order) {
+        return order.id == orderId;
+    });
+
+    if (iter == book.end()) {
+        return {ModifyState::NotFound, {}};
+    }
+
+    Order& orderFound = *iter;
+    if (orderFound.quantity == newQuantity && orderFound.price == newPrice) {
+        return {ModifyState::Modified, {}};
+    }
+
+    if (orderFound.price == newPrice && orderFound.quantity > newQuantity) {
+        orderFound.quantity = newQuantity;
+        return {ModifyState::Modified, {}};
+    }
+
+    auto orderToBeMatched = orderFound;
+    orderToBeMatched.quantity = newQuantity;
+    orderToBeMatched.price = newPrice;
+    book.erase(iter);
+    return {ModifyState::Modified, add_order(orderToBeMatched)};
+}
+
+CancelState OrderBook::cancel_order(const int orderId, const Side side) {
+    std::vector<Order>& book = (side == Side::Buy) ? bids : asks;
+
+    const auto it = std::find_if(book.begin(), book.end(),
+                                 [orderId](const Order &order) {
+                                     return order.id == orderId;
+                                 });
+
+    if (it == book.end()) {
+        return CancelState::NotFound;
+    }
+
+    book.erase(it);
+    return CancelState::Canceled;
+
+}

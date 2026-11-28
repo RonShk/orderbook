@@ -1,0 +1,5 @@
+Buy 10 10000
+Modify 1 Buy 10 9900
+Modify 1 Buy 20 9900
+Cancel 1 Buy
+Sell 5 9000

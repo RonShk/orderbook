@@ -1,0 +1,13 @@
+MODIFY id=1 Rejected
+MODIFY id=1 Rejected
+MODIFY id=1 Rejected
+MODIFY id=7 NotFound
+MODIFY id=1 NotFound
+orders 1
+modifies 5 modified=0 not_found=2 rejected=3
+trades 0
+checksum 628486455610451673
+ASKS
+--- spread ---
+BIDS
+  100.00  x 10

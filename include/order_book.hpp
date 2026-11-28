@@ -15,6 +15,8 @@ private:
 
 public:
     std::vector<Trade> add_order(const Order& ord);
-    void print_order_book(); 
+    void print_order_book();
+    ModifyResult modify_order(int orderId, int newPrice, int newQuantity, Side side);
+    CancelState cancel_order(int orderId, Side side);
 
 };
